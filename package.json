@@ -1,0 +1,28 @@
+{
+  "name": "forkify",
+  "version": "1.0.0",
+  "description": "Recipe application",
+  "scripts": {
+    "start": "parcel index.html",
+    "build": "parcel build index.html"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/cxkeeley/forkify-app.git"
+  },
+  "author": "Darwin Keeley",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/cxkeeley/forkify-app/issues"
+  },
+  "homepage": "https://github.com/cxkeeley/forkify-app#readme",
+  "devDependencies": {
+    "@parcel/transformer-sass": "^2.6.2",
+    "parcel": "^2.6.2",
+    "sass": "^1.53.0"
+  },
+  "dependencies": {
+    "core-js": "^3.23.2",
+    "regenerator-runtime": "^0.13.9"
+  }
+}
