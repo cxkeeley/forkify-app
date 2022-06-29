@@ -8,16 +8,16 @@ class RecipeView {
 
   render(data) {
     this.#data = data;
-    const markup = this.#generateMarkup();
+    const dataMarkup = this.#generateMarkup();
     this.#clear();
-    this.#parentElement.insertAdjacentHTML('afterbegin', markup);
+    this.#parentElement.insertAdjacentHTML('afterbegin', dataMarkup);
   }
 
   #clear() {
     this.#parentElement.innerHTML = '';
   }
 
-  renderSpinner = function () {
+  renderSpinner() {
     const spinnerMarkup = `
       <div class='spinner'>
         <svg>
@@ -25,9 +25,28 @@ class RecipeView {
         </svg>
       </div>;
     `;
-    this.#parentElement.innerHTML = ''; // to clear the this.#parentElement content
+    this.#clear(); // to clear the this.#parentElement content
     this.#parentElement.insertAdjacentHTML('afterbegin', spinnerMarkup);
-  };
+  }
+
+  renderError(message) {
+    const errorMarkup = `
+      <div class="error">
+        <div>
+          <svg>
+            <use href="${icons}#icon-alert-triangle"></use>
+          </svg>
+        </div>
+        <p>${message}</p>
+      </div>
+    `;
+    this.#clear(); // to clear the this.#parentElement content
+    this.#parentElement.insertAdjacentHTML('afterbegin', errorMarkup);
+  }
+
+  addHandlerRender(handler) {
+    ['hashchange', 'load'].forEach(ev => window.addEventListener(ev, handler));
+  }
 
   #generateMarkup() {
     return `
@@ -123,7 +142,9 @@ class RecipeView {
         <svg class="recipe__icon">
           <use href="${icons}#icon-check"></use>
         </svg>
-        <div class="recipe__quantity">${ing.quantity ? new Fraction(ing.quantity).toString() : ''}</div>
+        <div class="recipe__quantity">${
+          ing.quantity ? new Fraction(ing.quantity).toString() : ''
+        }</div>
         <div class="recipe__description">
           <span class="recipe__unit">${ing.unit}</span>
           ${ing.description}
