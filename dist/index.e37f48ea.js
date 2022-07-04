@@ -2511,7 +2511,7 @@ const timeout = function(s) {
     return new Promise(function(_, reject) {
         setTimeout(function() {
             reject(new Error(`Request took too long! Timeout after ${s} second`));
-        }, s * 1000);
+        }, s * 10000);
     });
 };
 const getJSON = async function(url) {
@@ -3024,7 +3024,7 @@ class ResultsView extends (0, _viewDefault.default) {
     _successMessage = "";
     _generateMarkup() {
         console.log(this._data);
-        return this._data.map(this._generateMarkupPreview).join("");
+        return this._data.map((result)=>this._generateMarkupPreview(result)).join("");
     }
     _generateMarkupPreview(result) {
         return `
