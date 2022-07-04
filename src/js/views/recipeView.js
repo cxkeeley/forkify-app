@@ -5,7 +5,7 @@ import icons from 'url:../../img/icons.svg'; // Parcel 2
 import { Fraction } from 'fractional';
 
 class RecipeView extends View {
-  _parentEl = document.querySelector('.recipe');
+  _parentElement = document.querySelector('.recipe');
   _errorMessage = 'We could not find the recipe, Please try another recipe!';
   _successMessage = '';
   
@@ -13,8 +13,19 @@ class RecipeView extends View {
     ['hashchange', 'load'].forEach(ev => window.addEventListener(ev, handler));
   }
 
+  addHandlerUpdateServings(handler) {
+    this._parentElement.addEventListener('click', function(e) {
+      const btn = e.target.closest('.btn--update-servings')
+      if(!btn) return;
+      // const updateTo = +btn.dataset.updateTo;
+      const {updateTo} = btn.dataset; // use destucturing
+      if(+updateTo < 1) return; // to protect from 0 servings and minus
+      handler(+updateTo);
+    })
+  }
+
   _generateMarkup() {
-    console.log(this._data);
+    // console.log(this._data);
     return `
       <figure class="recipe__fig">
         <img src="${this._data.image}" alt="${
@@ -45,12 +56,12 @@ class RecipeView extends View {
           <span class="recipe__info-text">servings</span>
 
           <div class="recipe__info-buttons">
-            <button class="btn--tiny btn--increase-servings">
+            <button class="btn--tiny btn--update-servings" data-update-to='${this._data.servings - 1}'>
               <svg>
                 <use href="${icons}#icon-minus-circle"></use>
               </svg>
             </button>
-            <button class="btn--tiny btn--increase-servings">
+            <button class="btn--tiny btn--update-servings" data-update-to='${this._data.servings + 1}'>
               <svg>
                 <use href="${icons}#icon-plus-circle"></use>
               </svg>

@@ -555,6 +555,8 @@ const controlRecipes = async function() {
         const recipeId = window.location.hash.replace(/#/g, "");
         if (!recipeId) return;
         (0, _recipeViewJsDefault.default).renderSpinner();
+        // 0) Update results view to mark selected search result
+        (0, _resultsViewJsDefault.default).update(_modelJs.getSearchResultsPage());
         // 1) Get the recipe
         await _modelJs.loadRecipe(recipeId);
         // 2) Rendering recipe to UI
@@ -587,8 +589,16 @@ const controlPagination = function(goToPage) {
     // 4) Render New initial pagination buttons
     (0, _paginationViewJsDefault.default).render(_modelJs.state.search);
 };
+const controlServings = function(updateTo) {
+    // Update the recipe servings (in state)
+    _modelJs.updateServings(updateTo);
+    // Update the recipe view
+    // recipeView.render(model.state.recipe); // render method give the web browser flickering and recall all the element that is waste of work and data
+    (0, _recipeViewJsDefault.default).update(_modelJs.state.recipe);
+};
 const init = function() {
     (0, _recipeViewJsDefault.default).addHandlerRender(controlRecipes);
+    (0, _recipeViewJsDefault.default).addHandlerUpdateServings(controlServings);
     (0, _searchViewJsDefault.default).addHandlerSearch(controlSearchResults);
     (0, _paginationViewJsDefault.default).addHandlerClick(controlPagination);
 };
@@ -1836,6 +1846,7 @@ parcelHelpers.export(exports, "state", ()=>state);
 parcelHelpers.export(exports, "loadRecipe", ()=>loadRecipe);
 parcelHelpers.export(exports, "loadSearchResults", ()=>loadSearchResults);
 parcelHelpers.export(exports, "getSearchResultsPage", ()=>getSearchResultsPage);
+parcelHelpers.export(exports, "updateServings", ()=>updateServings);
 var _regeneratorRuntime = require("regenerator-runtime");
 var _config = require("./config");
 var _helpers = require("./helpers");
@@ -1892,6 +1903,13 @@ const getSearchResultsPage = function(page = state.search.page) {
     const start = (page - 1) * state.search.resultsPerPage; // 0
     const end = page * state.search.resultsPerPage; // 9
     return state.search.results.slice(start, end);
+};
+const updateServings = function(newServings) {
+    state.recipe.ingredients.forEach((ing)=>{
+        ing.quantity = ing.quantity / state.recipe.servings * newServings;
+    // newQty = oldQty / oldServings * newServings // 2 / 4 * 8 = 4
+    });
+    state.recipe.servings = newServings;
 };
 
 },{"regenerator-runtime":"dXNgZ","./config":"k5Hzs","./helpers":"hGI1E","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"dXNgZ":[function(require,module,exports) {
@@ -2539,7 +2557,7 @@ var _iconsSvg = require("url:../../img/icons.svg"); // Parcel 2
 var _iconsSvgDefault = parcelHelpers.interopDefault(_iconsSvg);
 var _fractional = require("fractional");
 class RecipeView extends (0, _viewDefault.default) {
-    _parentEl = document.querySelector(".recipe");
+    _parentElement = document.querySelector(".recipe");
     _errorMessage = "We could not find the recipe, Please try another recipe!";
     _successMessage = "";
     addHandlerRender(handler) {
@@ -2548,8 +2566,18 @@ class RecipeView extends (0, _viewDefault.default) {
             "load"
         ].forEach((ev)=>window.addEventListener(ev, handler));
     }
+    addHandlerUpdateServings(handler) {
+        this._parentElement.addEventListener("click", function(e) {
+            const btn = e.target.closest(".btn--update-servings");
+            if (!btn) return;
+            // const updateTo = +btn.dataset.updateTo;
+            const { updateTo  } = btn.dataset; // use destucturing
+            if (+updateTo < 1) return; // to protect from 0 servings and minus
+            handler(+updateTo);
+        });
+    }
     _generateMarkup() {
-        console.log(this._data);
+        // console.log(this._data);
         return `
       <figure class="recipe__fig">
         <img src="${this._data.image}" alt="${this._data.title}" class="recipe__img" />
@@ -2574,12 +2602,12 @@ class RecipeView extends (0, _viewDefault.default) {
           <span class="recipe__info-text">servings</span>
 
           <div class="recipe__info-buttons">
-            <button class="btn--tiny btn--increase-servings">
+            <button class="btn--tiny btn--update-servings" data-update-to='${this._data.servings - 1}'>
               <svg>
                 <use href="${0, _iconsSvgDefault.default}#icon-minus-circle"></use>
               </svg>
             </button>
-            <button class="btn--tiny btn--increase-servings">
+            <button class="btn--tiny btn--update-servings" data-update-to='${this._data.servings + 1}'>
               <svg>
                 <use href="${0, _iconsSvgDefault.default}#icon-plus-circle"></use>
               </svg>
@@ -2652,10 +2680,28 @@ class View {
         this._data = data;
         const dataMarkup = this._generateMarkup();
         this._clear();
-        this._parentEl.insertAdjacentHTML("afterbegin", dataMarkup);
+        this._parentElement.insertAdjacentHTML("afterbegin", dataMarkup);
+    }
+    update(data) {
+        // if (!data || (Array.isArray(data) && data.length === 0))
+        //   return this.renderError();
+        this._data = data;
+        const newMarkup = this._generateMarkup();
+        const newDOM = document.createRange().createContextualFragment(newMarkup);
+        const newElement = Array.from(newDOM.querySelectorAll("*"));
+        const curElement = Array.from(this._parentElement.querySelectorAll("*"));
+        newElement.forEach((newEl, i)=>{
+            const curEl = curElement[i];
+            // console.log(curEl, newEl.isEqualNode(curEl));
+            // Update changed text
+            if (!newEl.isEqualNode(curEl) && newEl.firstChild?.nodeValue.trim() !== "") // console.log('💥', newEl.firstChild.nodeValue.trim());
+            curEl.textContent = newEl.textContent;
+            // Update changed ATTRIBUTES
+            if (!newEl.isEqualNode(curEl)) Array.from(newEl.attributes).forEach((attr)=>curEl.setAttribute(attr.name, attr.value)); // to replace the attr from the newEl
+        });
     }
     _clear() {
-        this._parentEl.innerHTML = ""; // to clear the this._parentEl content
+        this._parentElement.innerHTML = ""; // to clear the this._parentElement content
     }
     renderSpinner() {
         const spinnerMarkup = `
@@ -2666,7 +2712,7 @@ class View {
       </div>;
     `;
         this._clear();
-        this._parentEl.insertAdjacentHTML("afterbegin", spinnerMarkup);
+        this._parentElement.insertAdjacentHTML("afterbegin", spinnerMarkup);
     }
     renderError(message = this._errorMessage) {
         const errorMarkup = `
@@ -2680,7 +2726,7 @@ class View {
       </div>
     `;
         this._clear();
-        this._parentEl.insertAdjacentHTML("afterbegin", errorMarkup);
+        this._parentElement.insertAdjacentHTML("afterbegin", errorMarkup);
     }
     renderMessage(message = this._successMessage) {
         const successMarkup = `
@@ -2694,7 +2740,7 @@ class View {
       </div>
     `;
         this._clear();
-        this._parentEl.insertAdjacentHTML("afterbegin", successMarkup);
+        this._parentElement.insertAdjacentHTML("afterbegin", successMarkup);
     }
 }
 exports.default = View;
@@ -2993,17 +3039,17 @@ module.exports.Fraction = Fraction;
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 class SearchView {
-    _parentEl = document.querySelector(".search");
+    _parentElement = document.querySelector(".search");
     getQuery() {
-        const query = this._parentEl.querySelector(".search__field").value;
+        const query = this._parentElement.querySelector(".search__field").value;
         this._clearInput();
         return query;
     }
     _clearInput() {
-        this._parentEl.querySelector(".search__field").value = "";
+        this._parentElement.querySelector(".search__field").value = "";
     }
     addHandlerSearch(handler) {
-        this._parentEl.addEventListener("submit", function(e) {
+        this._parentElement.addEventListener("submit", function(e) {
             e.preventDefault();
             handler();
         });
@@ -3019,7 +3065,7 @@ var _viewDefault = parcelHelpers.interopDefault(_view);
 var _iconsSvg = require("url:../../img/icons.svg");
 var _iconsSvgDefault = parcelHelpers.interopDefault(_iconsSvg);
 class ResultsView extends (0, _viewDefault.default) {
-    _parentEl = document.querySelector(".results");
+    _parentElement = document.querySelector(".results");
     _errorMessage = "We could not find the recipe, Please try another recipe!";
     _successMessage = "";
     _generateMarkup() {
@@ -3027,9 +3073,10 @@ class ResultsView extends (0, _viewDefault.default) {
         return this._data.map((result)=>this._generateMarkupPreview(result)).join("");
     }
     _generateMarkupPreview(result) {
+        const id = window.location.hash.slice(1);
         return `
       <li class="preview">
-        <a class="preview__link" href="#${result.id}">
+        <a class="preview__link ${result.id === id ? "preview__link--active" : ""}" href="#${result.id}">
           <figure class="preview__fig">
             <img src="${result.image}" alt="${result.title}" />
           </figure>

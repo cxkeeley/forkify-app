@@ -18,11 +18,15 @@ const controlRecipes = async function () {
     if (!recipeId) return;
     recipeView.renderSpinner();
 
+    // 0) Update results view to mark selected search result
+    resultsView.update(model.getSearchResultsPage());
+
     // 1) Get the recipe
     await model.loadRecipe(recipeId);
 
     // 2) Rendering recipe to UI
     recipeView.render(model.state.recipe);
+
   } catch (err) {
     recipeView.renderError();
   }
@@ -44,25 +48,36 @@ const controlSearchResults = async function () {
     resultsView.render(model.getSearchResultsPage());
 
     // 4) Render initial pagination buttons
-    paginationView.render(model.state.search)
+    paginationView.render(model.state.search);
   } catch (err) {
     console.log(err);
   }
 };
 
-const controlPagination = function(goToPage) {
-   // 3) Render New results
-    // resultsView.render(model.state.search.results)
-    resultsView.render(model.getSearchResultsPage(goToPage));
+const controlPagination = function (goToPage) {
+  // 3) Render New results
+  // resultsView.render(model.state.search.results)
+  resultsView.render(model.getSearchResultsPage(goToPage));
 
-    // 4) Render New initial pagination buttons
-    paginationView.render(model.state.search)
-}
+  // 4) Render New initial pagination buttons
+  paginationView.render(model.state.search);
+};
+
+const controlServings = function (updateTo) {
+  // Update the recipe servings (in state)
+  model.updateServings(updateTo);
+
+  // Update the recipe view
+  // recipeView.render(model.state.recipe); // render method give the web browser flickering and recall all the element that is waste of work and data
+  recipeView.update(model.state.recipe);
+};
 
 const init = function () {
   recipeView.addHandlerRender(controlRecipes);
+  recipeView.addHandlerUpdateServings(controlServings);
   searchView.addHandlerSearch(controlSearchResults);
   paginationView.addHandlerClick(controlPagination);
+  
 };
 init();
 // controlRecipes(); | remove because we only want to show the recipe when the hash is changed
