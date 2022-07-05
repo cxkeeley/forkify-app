@@ -1,8 +1,8 @@
 import View from './View';
 
-class ResultsView extends View {
-  _parentElement = document.querySelector('.results')
-  _errorMessage = 'We could not find the recipe, Please try another recipe!';
+class BookmarksView extends View {
+  _parentElement = document.querySelector('.bookmarks__list')
+  _errorMessage = 'No bookmarks yet! Find a nice recipe and bookmark it!';
   _successMessage = '';
 
   _generateMarkup() {
@@ -29,4 +29,4 @@ class ResultsView extends View {
   }
 }
 
-export default new ResultsView();
+export default new BookmarksView();
