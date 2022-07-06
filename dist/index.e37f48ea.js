@@ -537,17 +537,17 @@ var _esArrayIncludesJs = require("core-js/modules/es.array.includes.js"); // con
  // window.addEventListener('hashchange', controlRecipes);
  // window.addEventListener('load', controlRecipes);
 var _webImmediateJs = require("core-js/modules/web.immediate.js");
-var _modelJs = require("./model.js"); // import all
-var _recipeViewJs = require("./views/recipeView.js");
-var _recipeViewJsDefault = parcelHelpers.interopDefault(_recipeViewJs);
-var _searchViewJs = require("./views/searchView.js");
-var _searchViewJsDefault = parcelHelpers.interopDefault(_searchViewJs);
-var _resultsViewJs = require("./views/resultsView.js");
-var _resultsViewJsDefault = parcelHelpers.interopDefault(_resultsViewJs);
-var _paginationViewJs = require("./views/paginationView.js");
-var _paginationViewJsDefault = parcelHelpers.interopDefault(_paginationViewJs);
-var _bookmarksViewJs = require("./views/bookmarksView.js");
-var _bookmarksViewJsDefault = parcelHelpers.interopDefault(_bookmarksViewJs);
+var _model = require("./model"); // import all
+var _recipeView = require("./views/recipeView");
+var _recipeViewDefault = parcelHelpers.interopDefault(_recipeView);
+var _searchView = require("./views/searchView");
+var _searchViewDefault = parcelHelpers.interopDefault(_searchView);
+var _resultsView = require("./views/resultsView");
+var _resultsViewDefault = parcelHelpers.interopDefault(_resultsView);
+var _paginationView = require("./views/paginationView");
+var _paginationViewDefault = parcelHelpers.interopDefault(_paginationView);
+var _bookmarksView = require("./views/bookmarksView");
+var _bookmarksViewDefault = parcelHelpers.interopDefault(_bookmarksView);
 var _runtime = require("regenerator-runtime/runtime");
 // if (module.hot) {
 //   module.hot.accept();
@@ -556,30 +556,33 @@ const controlRecipes = async function() {
     try {
         const recipeId = window.location.hash.replace(/#/g, "");
         if (!recipeId) return;
-        (0, _recipeViewJsDefault.default).renderSpinner();
+        (0, _recipeViewDefault.default).renderSpinner();
         // 0) Update results view to mark selected search result
-        (0, _resultsViewJsDefault.default).update(_modelJs.getSearchResultsPage());
-        // 1) Get the recipe
-        await _modelJs.loadRecipe(recipeId);
-        // 2) Rendering recipe to UI
-        (0, _recipeViewJsDefault.default).render(_modelJs.state.recipe);
+        (0, _resultsViewDefault.default).update(_model.getSearchResultsPage());
+        // 1) Updating bookmarks view
+        (0, _bookmarksViewDefault.default).update(_model.state.bookmarks);
+        // 2) Get the recipe
+        await _model.loadRecipe(recipeId);
+        // 3) Rendering recipe to UI
+        (0, _recipeViewDefault.default).render(_model.state.recipe);
     } catch (err) {
-        (0, _recipeViewJsDefault.default).renderError();
+        (0, _recipeViewDefault.default).renderError();
+        console.error(err);
     }
 };
 const controlSearchResults = async function() {
     try {
-        (0, _resultsViewJsDefault.default).renderSpinner();
+        (0, _resultsViewDefault.default).renderSpinner();
         // 1) Get search query
-        const query = (0, _searchViewJsDefault.default).getQuery();
+        const query = (0, _searchViewDefault.default).getQuery();
         if (!query) return;
         // 2) Load search results
-        await _modelJs.loadSearchResults(query);
+        await _model.loadSearchResults(query);
         // 3) Render results
         // resultsView.render(model.state.search.results)
-        (0, _resultsViewJsDefault.default).render(_modelJs.getSearchResultsPage());
+        (0, _resultsViewDefault.default).render(_model.getSearchResultsPage());
         // 4) Render initial pagination buttons
-        (0, _paginationViewJsDefault.default).render(_modelJs.state.search);
+        (0, _paginationViewDefault.default).render(_model.state.search);
     } catch (err) {
         console.log(err);
     }
@@ -587,36 +590,40 @@ const controlSearchResults = async function() {
 const controlPagination = function(goToPage) {
     // 3) Render New results
     // resultsView.render(model.state.search.results)
-    (0, _resultsViewJsDefault.default).render(_modelJs.getSearchResultsPage(goToPage));
+    (0, _resultsViewDefault.default).render(_model.getSearchResultsPage(goToPage));
     // 4) Render New initial pagination buttons
-    (0, _paginationViewJsDefault.default).render(_modelJs.state.search);
+    (0, _paginationViewDefault.default).render(_model.state.search);
 };
 const controlServings = function(updateTo) {
     // Update the recipe servings (in state)
-    _modelJs.updateServings(updateTo);
+    _model.updateServings(updateTo);
     // Update the recipe view
     // recipeView.render(model.state.recipe); // render method give the web browser flickering and recall all the element that is waste of work and data
-    (0, _recipeViewJsDefault.default).update(_modelJs.state.recipe);
+    (0, _recipeViewDefault.default).update(_model.state.recipe);
 };
 const controlAddBookmark = function() {
     // 1) Add/remove bookmark
-    if (!_modelJs.state.recipe.bookmarked) _modelJs.addBookmark(_modelJs.state.recipe);
-    else _modelJs.deleteBookmark(_modelJs.state.recipe.id);
+    if (!_model.state.recipe.bookmarked) _model.addBookmark(_model.state.recipe);
+    else _model.deleteBookmark(_model.state.recipe.id);
     // 2) Update recipe view
-    (0, _recipeViewJsDefault.default).update(_modelJs.state.recipe);
+    (0, _recipeViewDefault.default).update(_model.state.recipe);
     // 3) Render bookmarks
-    (0, _bookmarksViewJsDefault.default).render(_modelJs.state.bookmarks);
+    (0, _bookmarksViewDefault.default).render(_model.state.bookmarks);
+};
+const controlBookmarks = function() {
+    (0, _bookmarksViewDefault.default).render(_model.state.bookmarks);
 };
 const init = function() {
-    (0, _recipeViewJsDefault.default).addHandlerRender(controlRecipes);
-    (0, _recipeViewJsDefault.default).addHandlerUpdateServings(controlServings);
-    (0, _recipeViewJsDefault.default).addHandlerAddBookmark(controlAddBookmark);
-    (0, _searchViewJsDefault.default).addHandlerSearch(controlSearchResults);
-    (0, _paginationViewJsDefault.default).addHandlerClick(controlPagination);
+    (0, _bookmarksViewDefault.default).addHandlerRenderBM(controlBookmarks);
+    (0, _recipeViewDefault.default).addHandlerRender(controlRecipes);
+    (0, _recipeViewDefault.default).addHandlerUpdateServings(controlServings);
+    (0, _recipeViewDefault.default).addHandlerAddBookmark(controlAddBookmark);
+    (0, _searchViewDefault.default).addHandlerSearch(controlSearchResults);
+    (0, _paginationViewDefault.default).addHandlerClick(controlPagination);
 };
 init();
 
-},{"core-js/modules/es.array.includes.js":"dkJzX","core-js/modules/web.immediate.js":"49tUX","./model.js":"Y4A21","./views/recipeView.js":"l60JC","./views/searchView.js":"9OQAM","./views/resultsView.js":"cSbZE","regenerator-runtime/runtime":"dXNgZ","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3","./views/paginationView.js":"6z7bi","./views/bookmarksView.js":"4Lqzq"}],"dkJzX":[function(require,module,exports) {
+},{"core-js/modules/es.array.includes.js":"dkJzX","core-js/modules/web.immediate.js":"49tUX","regenerator-runtime/runtime":"dXNgZ","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3","./views/bookmarksView":"4Lqzq","./views/paginationView":"6z7bi","./views/resultsView":"cSbZE","./views/searchView":"9OQAM","./views/recipeView":"l60JC","./model":"Y4A21"}],"dkJzX":[function(require,module,exports) {
 "use strict";
 var $ = require("../internals/export");
 var $includes = require("../internals/array-includes").includes;
@@ -1851,99 +1858,7 @@ $({
     setImmediate: setImmediate
 });
 
-},{"../internals/export":"dIGt4","../internals/global":"i8HOC","../internals/task":"7jDg7"}],"Y4A21":[function(require,module,exports) {
-var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
-parcelHelpers.defineInteropFlag(exports);
-parcelHelpers.export(exports, "state", ()=>state);
-parcelHelpers.export(exports, "loadRecipe", ()=>loadRecipe);
-parcelHelpers.export(exports, "loadSearchResults", ()=>loadSearchResults);
-parcelHelpers.export(exports, "getSearchResultsPage", ()=>getSearchResultsPage);
-parcelHelpers.export(exports, "updateServings", ()=>updateServings);
-parcelHelpers.export(exports, "addBookmark", ()=>addBookmark);
-parcelHelpers.export(exports, "deleteBookmark", ()=>deleteBookmark);
-var _regeneratorRuntime = require("regenerator-runtime");
-var _config = require("./config");
-var _helpers = require("./helpers");
-const state = {
-    recipe: {},
-    search: {
-        query: "",
-        results: [],
-        page: 1,
-        resultsPerPage: (0, _config.RECIPE_PER_PAGE)
-    },
-    bookmarks: []
-};
-const loadRecipe = async function(recipeId) {
-    try {
-        const data = await (0, _helpers.getJSON)(`${(0, _config.API_URL)}${recipeId}`);
-        const { recipe  } = data.data;
-        state.recipe = {
-            id: recipe.id,
-            title: recipe.title,
-            publisher: recipe.publisher,
-            sourceUrl: recipe.source_url,
-            image: recipe.image_url,
-            servings: recipe.servings,
-            cookingTime: recipe.cooking_time,
-            ingredients: recipe.ingredients
-        };
-        if (state.bookmarks.some((bookmark)=>bookmark.id === recipeId)) state.recipe.bookmarked = true;
-        else state.recipe.bookmarked = false;
-        console.log(state.recipe);
-    } catch (err) {
-        // Temp error handling
-        console.error(`${err} 💥💥💥💥`);
-        throw err;
-    }
-};
-const loadSearchResults = async function(query) {
-    try {
-        state.search.query = query;
-        const data = await (0, _helpers.getJSON)(`${(0, _config.API_URL)}?search=${query}`);
-        console.log(data);
-        state.search.results = data.data.recipes.map((recipes)=>{
-            return {
-                id: recipes.id,
-                title: recipes.title,
-                publisher: recipes.publisher,
-                image: recipes.image_url
-            };
-        });
-        state.search.page = 1;
-    } catch (err) {
-        console.error(`${err} 💥💥💥💥`);
-        throw err;
-    }
-};
-const getSearchResultsPage = function(page = state.search.page) {
-    state.search.page = page;
-    const start = (page - 1) * state.search.resultsPerPage; // 0
-    const end = page * state.search.resultsPerPage; // 9
-    return state.search.results.slice(start, end);
-};
-const updateServings = function(newServings) {
-    state.recipe.ingredients.forEach((ing)=>{
-        ing.quantity = ing.quantity / state.recipe.servings * newServings;
-    // newQty = oldQty / oldServings * newServings // 2 / 4 * 8 = 4
-    });
-    state.recipe.servings = newServings;
-};
-const addBookmark = function(recipe) {
-    // Add bookmark
-    state.bookmarks.push(recipe);
-    // Mark current recipe as bookmark
-    if (recipe.id === state.recipe.id) state.recipe.bookmarked = true;
-};
-const deleteBookmark = function(id) {
-    // Delete bookmark
-    const index = state.bookmarks.findIndex((el)=>el.id === id);
-    state.bookmarks.splice(index, 1);
-    // Mark current recipe as not a bookmark
-    if (id === state.recipe.id) state.recipe.bookmarked = false;
-};
-
-},{"regenerator-runtime":"dXNgZ","./config":"k5Hzs","./helpers":"hGI1E","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"dXNgZ":[function(require,module,exports) {
+},{"../internals/export":"dIGt4","../internals/global":"i8HOC","../internals/task":"7jDg7"}],"dXNgZ":[function(require,module,exports) {
 /**
  * Copyright (c) 2014-present, Facebook, Inc.
  *
@@ -2510,17 +2425,7 @@ try {
     else Function("r", "regeneratorRuntime = r")(runtime);
 }
 
-},{}],"k5Hzs":[function(require,module,exports) {
-var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
-parcelHelpers.defineInteropFlag(exports);
-parcelHelpers.export(exports, "API_URL", ()=>API_URL);
-parcelHelpers.export(exports, "TIMEOUT_SEC", ()=>TIMEOUT_SEC);
-parcelHelpers.export(exports, "RECIPE_PER_PAGE", ()=>RECIPE_PER_PAGE);
-const API_URL = `https://forkify-api.herokuapp.com/api/v2/recipes/`;
-const TIMEOUT_SEC = 10;
-const RECIPE_PER_PAGE = 10;
-
-},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"gkKU3":[function(require,module,exports) {
+},{}],"gkKU3":[function(require,module,exports) {
 exports.interopDefault = function(a) {
     return a && a.__esModule ? a : {
         default: a
@@ -2550,35 +2455,270 @@ exports.export = function(dest, destName, get) {
     });
 };
 
-},{}],"hGI1E":[function(require,module,exports) {
+},{}],"4Lqzq":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
-parcelHelpers.export(exports, "getJSON", ()=>getJSON);
-var _regeneratorRuntime = require("regenerator-runtime");
-var _config = require("./config");
-const timeout = function(s) {
-    return new Promise(function(_, reject) {
-        setTimeout(function() {
-            reject(new Error(`Request took too long! Timeout after ${s} second`));
-        }, s * 1000);
-    });
-};
-const getJSON = async function(url) {
-    try {
-        const fetchPro = fetch(url);
-        const res = await Promise.race([
-            fetchPro,
-            timeout((0, _config.TIMEOUT_SEC))
-        ]);
-        const data = await res.json();
-        if (!res.ok) throw new Error(`${data.message} (${res.status})`);
-        return data;
-    } catch (err) {
-        throw err;
+var _view = require("./View");
+var _viewDefault = parcelHelpers.interopDefault(_view);
+var _previewView = require("./previewView");
+var _previewViewDefault = parcelHelpers.interopDefault(_previewView);
+class BookmarksView extends (0, _viewDefault.default) {
+    _parentElement = document.querySelector(".bookmarks__list");
+    _errorMessage = "No bookmarks yet! Find a nice recipe and bookmark it ;)";
+    _successMessage = "";
+    addHandlerRenderBM(handler) {
+        window.addEventListener("load", handler);
     }
-};
+    _generateMarkup() {
+        // console.log(this._data);
+        return this._data.map((bookmark)=>(0, _previewViewDefault.default).render(bookmark, false)).join("");
+    }
+}
+exports.default = new BookmarksView();
 
-},{"regenerator-runtime":"dXNgZ","./config":"k5Hzs","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"l60JC":[function(require,module,exports) {
+},{"./View":"5cUXS","./previewView":"1FDQ6","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"5cUXS":[function(require,module,exports) {
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+var _iconsSvg = require("url:../../img/icons.svg");
+var _iconsSvgDefault = parcelHelpers.interopDefault(_iconsSvg);
+class View {
+    _data;
+    render(data, render = true) {
+        if (!data || Array.isArray(data) && data.length === 0) return this.renderError();
+        this._data = data;
+        const dataMarkup = this._generateMarkup();
+        if (!render) return dataMarkup;
+        this._clear();
+        this._parentElement.insertAdjacentHTML("afterbegin", dataMarkup);
+    }
+    update(data) {
+        // if (!data || (Array.isArray(data) && data.length === 0))
+        //   return this.renderError();
+        this._data = data;
+        const newMarkup = this._generateMarkup();
+        const newDOM = document.createRange().createContextualFragment(newMarkup);
+        const newElements = Array.from(newDOM.querySelectorAll("*"));
+        const curElements = Array.from(this._parentElement.querySelectorAll("*"));
+        newElements.forEach((newEl, i)=>{
+            const curEl = curElements[i];
+            // console.log(curEl, newEl.isEqualNode(curEl));
+            // Update changed text
+            if (!newEl.isEqualNode(curEl) && newEl.firstChild?.nodeValue.trim() !== "") // console.log('💥', newEl.firstChild.nodeValue.trim());
+            curEl.textContent = newEl.textContent;
+            // Update changed ATTRIBUTES
+            if (!newEl.isEqualNode(curEl)) Array.from(newEl.attributes).forEach((attr)=>curEl.setAttribute(attr.name, attr.value)); // to replace the attr from the newEl
+        });
+    }
+    _clear() {
+        this._parentElement.innerHTML = ""; // to clear the this._parentElement content
+    }
+    renderSpinner() {
+        const spinnerMarkup = `
+      <div class='spinner'>
+        <svg>
+          <use href='${(0, _iconsSvgDefault.default)}#icon-loader'></use>
+        </svg>
+      </div>;
+    `;
+        this._clear();
+        this._parentElement.insertAdjacentHTML("afterbegin", spinnerMarkup);
+    }
+    renderError(message = this._errorMessage) {
+        const errorMarkup = `
+      <div class="error">
+        <div>
+          <svg>
+            <use href="${(0, _iconsSvgDefault.default)}#icon-alert-triangle"></use>
+          </svg>
+        </div>
+        <p>${message}</p>
+      </div>
+    `;
+        this._clear();
+        this._parentElement.insertAdjacentHTML("afterbegin", errorMarkup);
+    }
+    renderMessage(message = this._successMessage) {
+        const successMarkup = `
+      <div class="error">
+        <div>
+          <svg>
+            <use href="${(0, _iconsSvgDefault.default)}#icon-smile"></use>
+          </svg>
+        </div>
+        <p>${message}</p>
+      </div>
+    `;
+        this._clear();
+        this._parentElement.insertAdjacentHTML("afterbegin", successMarkup);
+    }
+}
+exports.default = View;
+
+},{"url:../../img/icons.svg":"loVOp","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"loVOp":[function(require,module,exports) {
+module.exports = require("./helpers/bundle-url").getBundleURL("hWUTQ") + "icons.dfd7a6db.svg" + "?" + Date.now();
+
+},{"./helpers/bundle-url":"lgJ39"}],"lgJ39":[function(require,module,exports) {
+"use strict";
+var bundleURL = {};
+function getBundleURLCached(id) {
+    var value = bundleURL[id];
+    if (!value) {
+        value = getBundleURL();
+        bundleURL[id] = value;
+    }
+    return value;
+}
+function getBundleURL() {
+    try {
+        throw new Error();
+    } catch (err) {
+        var matches = ("" + err.stack).match(/(https?|file|ftp|(chrome|moz|safari-web)-extension):\/\/[^)\n]+/g);
+        if (matches) // The first two stack frames will be this function and getBundleURLCached.
+        // Use the 3rd one, which will be a runtime in the original bundle.
+        return getBaseURL(matches[2]);
+    }
+    return "/";
+}
+function getBaseURL(url) {
+    return ("" + url).replace(/^((?:https?|file|ftp|(chrome|moz|safari-web)-extension):\/\/.+)\/[^/]+$/, "$1") + "/";
+} // TODO: Replace uses with `new URL(url).origin` when ie11 is no longer supported.
+function getOrigin(url) {
+    var matches = ("" + url).match(/(https?|file|ftp|(chrome|moz|safari-web)-extension):\/\/[^/]+/);
+    if (!matches) throw new Error("Origin not found");
+    return matches[0];
+}
+exports.getBundleURL = getBundleURLCached;
+exports.getBaseURL = getBaseURL;
+exports.getOrigin = getOrigin;
+
+},{}],"1FDQ6":[function(require,module,exports) {
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+var _view = require("./View");
+var _viewDefault = parcelHelpers.interopDefault(_view);
+var _iconsSvg = require("url:../../img/icons.svg"); // Parcel 2
+var _iconsSvgDefault = parcelHelpers.interopDefault(_iconsSvg);
+class PreviewView extends (0, _viewDefault.default) {
+    _parentElement = "";
+    _generateMarkup() {
+        const id = window.location.hash.slice(1);
+        return `
+      <li class="preview">
+        <a class="preview__link ${this._data.id === id ? "preview__link--active" : ""}" href="#${this._data.id}">
+          <figure class="preview__fig">
+            <img src="${this._data.image}" alt="${this._data.title}" />
+          </figure>
+          <div class="preview__data">
+            <h4 class="preview__title">${this._data.title}</h4>
+            <p class="preview__publisher">${this._data.publisher}</p>
+          </div>
+        </a>
+      </li>
+    `;
+    }
+}
+exports.default = new PreviewView();
+
+},{"./View":"5cUXS","url:../../img/icons.svg":"loVOp","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"6z7bi":[function(require,module,exports) {
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+var _view = require("./View");
+var _viewDefault = parcelHelpers.interopDefault(_view);
+var _iconsSvg = require("url:../../img/icons.svg");
+var _iconsSvgDefault = parcelHelpers.interopDefault(_iconsSvg);
+class PaginationView extends (0, _viewDefault.default) {
+    _parentElement = document.querySelector(".pagination");
+    addHandlerClick(handler) {
+        this._parentElement.addEventListener("click", function(e) {
+            const btn = e.target.closest(".btn--inline");
+            if (!btn) return;
+            const goToPage = +btn.dataset.goto;
+            handler(goToPage);
+        });
+    }
+    _generateMarkup() {
+        const curPage = this._data.page;
+        const numPages = Math.ceil(this._data.results.length / this._data.resultsPerPage);
+        // page 1, and there are other pages
+        if (curPage === 1 && numPages > 1) return `
+        <button data-goto="${curPage + 1}" class="btn--inline pagination__btn--next">
+          <span>Page ${curPage + 1}</span>
+          <svg class="search__icon">
+            <use href="${0, _iconsSvgDefault.default}#icon-arrow-right"></use>
+          </svg>
+        </button>
+      `;
+        // last page
+        if (curPage === numPages && numPages > 1) return `
+        <button data-goto="${curPage - 1}" class="btn--inline pagination__btn--prev">
+          <svg class="search__icon">
+            <use href="${0, _iconsSvgDefault.default}#icon-arrow-left"></use>
+          </svg>
+          <span>Page ${curPage - 1}</span>
+        </button>
+      `;
+        // other page
+        if (curPage < numPages) return `
+        <button data-goto="${curPage - 1}" class="btn--inline pagination__btn--prev">
+          <svg class="search__icon">
+            <use href="${0, _iconsSvgDefault.default}#icon-arrow-left"></use>
+          </svg>
+          <span>Page ${curPage - 1}</span>
+        </button>
+        <button data-goto="${curPage + 1}" class="btn--inline pagination__btn--next">
+          <span>Page ${curPage + 1}</span>
+          <svg class="search__icon">
+            <use href="${0, _iconsSvgDefault.default}#icon-arrow-right"></use>
+          </svg>
+        </button>
+      `;
+        // page 1, and thera are no other pages
+        return ``;
+    }
+}
+exports.default = new PaginationView;
+
+},{"./View":"5cUXS","url:../../img/icons.svg":"loVOp","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"cSbZE":[function(require,module,exports) {
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+var _view = require("./View");
+var _viewDefault = parcelHelpers.interopDefault(_view);
+var _previewView = require("./previewView");
+var _previewViewDefault = parcelHelpers.interopDefault(_previewView);
+class ResultsView extends (0, _viewDefault.default) {
+    _parentElement = document.querySelector(".results");
+    _errorMessage = "We could not find the recipe, Please try another recipe!";
+    _successMessage = "";
+    _generateMarkup() {
+        // console.log(this._data);
+        return this._data.map((result)=>(0, _previewViewDefault.default).render(result, false)).join("");
+    }
+}
+exports.default = new ResultsView();
+
+},{"./View":"5cUXS","./previewView":"1FDQ6","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"9OQAM":[function(require,module,exports) {
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+class SearchView {
+    _parentElement = document.querySelector(".search");
+    getQuery() {
+        const query = this._parentElement.querySelector(".search__field").value;
+        this._clearInput();
+        return query;
+    }
+    _clearInput() {
+        this._parentElement.querySelector(".search__field").value = "";
+    }
+    addHandlerSearch(handler) {
+        this._parentElement.addEventListener("submit", function(e) {
+            e.preventDefault();
+            handler();
+        });
+    }
+}
+exports.default = new SearchView();
+
+},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"l60JC":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 var _view = require("./View");
@@ -2706,121 +2846,7 @@ class RecipeView extends (0, _viewDefault.default) {
 }
 exports.default = new RecipeView();
 
-},{"./View":"5cUXS","url:../../img/icons.svg":"loVOp","fractional":"3SU56","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"5cUXS":[function(require,module,exports) {
-var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
-parcelHelpers.defineInteropFlag(exports);
-var _iconsSvg = require("url:../../img/icons.svg");
-var _iconsSvgDefault = parcelHelpers.interopDefault(_iconsSvg);
-class View {
-    _data;
-    render(data) {
-        if (!data || Array.isArray(data) && data.length === 0) return this.renderError();
-        this._data = data;
-        const dataMarkup = this._generateMarkup();
-        this._clear();
-        this._parentElement.insertAdjacentHTML("afterbegin", dataMarkup);
-    }
-    update(data) {
-        // if (!data || (Array.isArray(data) && data.length === 0))
-        //   return this.renderError();
-        this._data = data;
-        const newMarkup = this._generateMarkup();
-        const newDOM = document.createRange().createContextualFragment(newMarkup);
-        const newElement = Array.from(newDOM.querySelectorAll("*"));
-        const curElement = Array.from(this._parentElement.querySelectorAll("*"));
-        newElement.forEach((newEl, i)=>{
-            const curEl = curElement[i];
-            // console.log(curEl, newEl.isEqualNode(curEl));
-            // Update changed text
-            if (!newEl.isEqualNode(curEl) && newEl.firstChild?.nodeValue.trim() !== "") // console.log('💥', newEl.firstChild.nodeValue.trim());
-            curEl.textContent = newEl.textContent;
-            // Update changed ATTRIBUTES
-            if (!newEl.isEqualNode(curEl)) Array.from(newEl.attributes).forEach((attr)=>curEl.setAttribute(attr.name, attr.value)); // to replace the attr from the newEl
-        });
-    }
-    _clear() {
-        this._parentElement.innerHTML = ""; // to clear the this._parentElement content
-    }
-    renderSpinner() {
-        const spinnerMarkup = `
-      <div class='spinner'>
-        <svg>
-          <use href='${(0, _iconsSvgDefault.default)}#icon-loader'></use>
-        </svg>
-      </div>;
-    `;
-        this._clear();
-        this._parentElement.insertAdjacentHTML("afterbegin", spinnerMarkup);
-    }
-    renderError(message = this._errorMessage) {
-        const errorMarkup = `
-      <div class="error">
-        <div>
-          <svg>
-            <use href="${(0, _iconsSvgDefault.default)}#icon-alert-triangle"></use>
-          </svg>
-        </div>
-        <p>${message}</p>
-      </div>
-    `;
-        this._clear();
-        this._parentElement.insertAdjacentHTML("afterbegin", errorMarkup);
-    }
-    renderMessage(message = this._successMessage) {
-        const successMarkup = `
-      <div class="error">
-        <div>
-          <svg>
-            <use href="${(0, _iconsSvgDefault.default)}#icon-smile"></use>
-          </svg>
-        </div>
-        <p>${message}</p>
-      </div>
-    `;
-        this._clear();
-        this._parentElement.insertAdjacentHTML("afterbegin", successMarkup);
-    }
-}
-exports.default = View;
-
-},{"url:../../img/icons.svg":"loVOp","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"loVOp":[function(require,module,exports) {
-module.exports = require("./helpers/bundle-url").getBundleURL("hWUTQ") + "icons.dfd7a6db.svg" + "?" + Date.now();
-
-},{"./helpers/bundle-url":"lgJ39"}],"lgJ39":[function(require,module,exports) {
-"use strict";
-var bundleURL = {};
-function getBundleURLCached(id) {
-    var value = bundleURL[id];
-    if (!value) {
-        value = getBundleURL();
-        bundleURL[id] = value;
-    }
-    return value;
-}
-function getBundleURL() {
-    try {
-        throw new Error();
-    } catch (err) {
-        var matches = ("" + err.stack).match(/(https?|file|ftp|(chrome|moz|safari-web)-extension):\/\/[^)\n]+/g);
-        if (matches) // The first two stack frames will be this function and getBundleURLCached.
-        // Use the 3rd one, which will be a runtime in the original bundle.
-        return getBaseURL(matches[2]);
-    }
-    return "/";
-}
-function getBaseURL(url) {
-    return ("" + url).replace(/^((?:https?|file|ftp|(chrome|moz|safari-web)-extension):\/\/.+)\/[^/]+$/, "$1") + "/";
-} // TODO: Replace uses with `new URL(url).origin` when ie11 is no longer supported.
-function getOrigin(url) {
-    var matches = ("" + url).match(/(https?|file|ftp|(chrome|moz|safari-web)-extension):\/\/[^/]+/);
-    if (!matches) throw new Error("Origin not found");
-    return matches[0];
-}
-exports.getBundleURL = getBundleURLCached;
-exports.getBaseURL = getBaseURL;
-exports.getOrigin = getOrigin;
-
-},{}],"3SU56":[function(require,module,exports) {
+},{"./View":"5cUXS","url:../../img/icons.svg":"loVOp","fractional":"3SU56","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"3SU56":[function(require,module,exports) {
 /*
 fraction.js
 A Javascript fraction library.
@@ -3073,151 +3099,150 @@ Fraction.primeFactors = function(n) {
 };
 module.exports.Fraction = Fraction;
 
-},{}],"9OQAM":[function(require,module,exports) {
+},{}],"Y4A21":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
-class SearchView {
-    _parentElement = document.querySelector(".search");
-    getQuery() {
-        const query = this._parentElement.querySelector(".search__field").value;
-        this._clearInput();
-        return query;
+parcelHelpers.export(exports, "state", ()=>state);
+parcelHelpers.export(exports, "loadRecipe", ()=>loadRecipe);
+parcelHelpers.export(exports, "loadSearchResults", ()=>loadSearchResults);
+parcelHelpers.export(exports, "getSearchResultsPage", ()=>getSearchResultsPage);
+parcelHelpers.export(exports, "updateServings", ()=>updateServings);
+parcelHelpers.export(exports, "addBookmark", ()=>addBookmark);
+parcelHelpers.export(exports, "deleteBookmark", ()=>deleteBookmark);
+var _regeneratorRuntime = require("regenerator-runtime");
+var _config = require("./config");
+var _helpers = require("./helpers");
+const state = {
+    recipe: {},
+    search: {
+        query: "",
+        results: [],
+        page: 1,
+        resultsPerPage: (0, _config.RECIPE_PER_PAGE)
+    },
+    bookmarks: []
+};
+const loadRecipe = async function(recipeId) {
+    try {
+        const data = await (0, _helpers.getJSON)(`${(0, _config.API_URL)}${recipeId}`);
+        const { recipe  } = data.data;
+        state.recipe = {
+            id: recipe.id,
+            title: recipe.title,
+            publisher: recipe.publisher,
+            sourceUrl: recipe.source_url,
+            image: recipe.image_url,
+            servings: recipe.servings,
+            cookingTime: recipe.cooking_time,
+            ingredients: recipe.ingredients
+        };
+        if (state.bookmarks.some((bookmark)=>bookmark.id === recipeId)) state.recipe.bookmarked = true;
+        else state.recipe.bookmarked = false;
+        console.log(state.recipe);
+    } catch (err) {
+        // Temp error handling
+        console.error(`${err} 💥💥💥💥`);
+        throw err;
     }
-    _clearInput() {
-        this._parentElement.querySelector(".search__field").value = "";
-    }
-    addHandlerSearch(handler) {
-        this._parentElement.addEventListener("submit", function(e) {
-            e.preventDefault();
-            handler();
+};
+const loadSearchResults = async function(query) {
+    try {
+        state.search.query = query;
+        const data = await (0, _helpers.getJSON)(`${(0, _config.API_URL)}?search=${query}`);
+        console.log(data);
+        state.search.results = data.data.recipes.map((recipes)=>{
+            return {
+                id: recipes.id,
+                title: recipes.title,
+                publisher: recipes.publisher,
+                image: recipes.image_url
+            };
         });
+        state.search.page = 1;
+    } catch (err) {
+        console.error(`${err} 💥💥💥💥`);
+        throw err;
     }
-}
-exports.default = new SearchView();
+};
+const getSearchResultsPage = function(page = state.search.page) {
+    state.search.page = page;
+    const start = (page - 1) * state.search.resultsPerPage; // 0
+    const end = page * state.search.resultsPerPage; // 9
+    return state.search.results.slice(start, end);
+};
+const updateServings = function(newServings) {
+    state.recipe.ingredients.forEach((ing)=>{
+        ing.quantity = ing.quantity / state.recipe.servings * newServings;
+    // newQty = oldQty / oldServings * newServings // 2 / 4 * 8 = 4
+    });
+    state.recipe.servings = newServings;
+};
+const persistBookmarks = function() {
+    localStorage.setItem("bookmarks", JSON.stringify(state.bookmarks));
+};
+const addBookmark = function(recipe) {
+    // Add bookmark
+    state.bookmarks.push(recipe);
+    // Mark current recipe as bookmark
+    if (recipe.id === state.recipe.id) state.recipe.bookmarked = true;
+    persistBookmarks();
+};
+const deleteBookmark = function(id) {
+    // Delete bookmark
+    const index = state.bookmarks.findIndex((el)=>el.id === id);
+    state.bookmarks.splice(index, 1);
+    // Mark current recipe as not a bookmark
+    if (id === state.recipe.id) state.recipe.bookmarked = false;
+    persistBookmarks();
+};
+const init = function() {
+    const storage = localStorage.getItem("bookmarks");
+    if (storage) state.bookmarks = JSON.parse(storage);
+};
+init();
+const clearBookmarks = function() {
+    localStorage.clear("bookmarks");
+} // clearBookmarks();
+;
 
-},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"cSbZE":[function(require,module,exports) {
+},{"regenerator-runtime":"dXNgZ","./config":"k5Hzs","./helpers":"hGI1E","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"k5Hzs":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
-var _view = require("./View");
-var _viewDefault = parcelHelpers.interopDefault(_view);
-class ResultsView extends (0, _viewDefault.default) {
-    _parentElement = document.querySelector(".results");
-    _errorMessage = "We could not find the recipe, Please try another recipe!";
-    _successMessage = "";
-    _generateMarkup() {
-        console.log(this._data);
-        return this._data.map((result)=>this._generateMarkupPreview(result)).join("");
-    }
-    _generateMarkupPreview(result) {
-        const id = window.location.hash.slice(1);
-        return `
-      <li class="preview">
-        <a class="preview__link ${result.id === id ? "preview__link--active" : ""}" href="#${result.id}">
-          <figure class="preview__fig">
-            <img src="${result.image}" alt="${result.title}" />
-          </figure>
-          <div class="preview__data">
-            <h4 class="preview__title">${result.title}</h4>
-            <p class="preview__publisher">${result.publisher}</p>
-          </div>
-        </a>
-      </li>
-    `;
-    }
-}
-exports.default = new ResultsView();
+parcelHelpers.export(exports, "API_URL", ()=>API_URL);
+parcelHelpers.export(exports, "TIMEOUT_SEC", ()=>TIMEOUT_SEC);
+parcelHelpers.export(exports, "RECIPE_PER_PAGE", ()=>RECIPE_PER_PAGE);
+const API_URL = `https://forkify-api.herokuapp.com/api/v2/recipes/`;
+const TIMEOUT_SEC = 10;
+const RECIPE_PER_PAGE = 10;
 
-},{"./View":"5cUXS","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"6z7bi":[function(require,module,exports) {
+},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"hGI1E":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
-var _view = require("./View");
-var _viewDefault = parcelHelpers.interopDefault(_view);
-var _iconsSvg = require("url:../../img/icons.svg");
-var _iconsSvgDefault = parcelHelpers.interopDefault(_iconsSvg);
-class PaginationView extends (0, _viewDefault.default) {
-    _parentElement = document.querySelector(".pagination");
-    addHandlerClick(handler) {
-        this._parentElement.addEventListener("click", function(e) {
-            const btn = e.target.closest(".btn--inline");
-            if (!btn) return;
-            const goToPage = +btn.dataset.goto;
-            handler(goToPage);
-        });
+parcelHelpers.export(exports, "getJSON", ()=>getJSON);
+var _regeneratorRuntime = require("regenerator-runtime");
+var _config = require("./config");
+const timeout = function(s) {
+    return new Promise(function(_, reject) {
+        setTimeout(function() {
+            reject(new Error(`Request took too long! Timeout after ${s} second`));
+        }, s * 1000);
+    });
+};
+const getJSON = async function(url) {
+    try {
+        const fetchPro = fetch(url);
+        const res = await Promise.race([
+            fetchPro,
+            timeout((0, _config.TIMEOUT_SEC))
+        ]);
+        const data = await res.json();
+        if (!res.ok) throw new Error(`${data.message} (${res.status})`);
+        return data;
+    } catch (err) {
+        throw err;
     }
-    _generateMarkup() {
-        const curPage = this._data.page;
-        const numPages = Math.ceil(this._data.results.length / this._data.resultsPerPage);
-        // page 1, and there are other pages
-        if (curPage === 1 && numPages > 1) return `
-        <button data-goto="${curPage + 1}" class="btn--inline pagination__btn--next">
-          <span>Page ${curPage + 1}</span>
-          <svg class="search__icon">
-            <use href="${0, _iconsSvgDefault.default}#icon-arrow-right"></use>
-          </svg>
-        </button>
-      `;
-        // last page
-        if (curPage === numPages && numPages > 1) return `
-        <button data-goto="${curPage - 1}" class="btn--inline pagination__btn--prev">
-          <svg class="search__icon">
-            <use href="${0, _iconsSvgDefault.default}#icon-arrow-left"></use>
-          </svg>
-          <span>Page ${curPage - 1}</span>
-        </button>
-      `;
-        // other page
-        if (curPage < numPages) return `
-        <button data-goto="${curPage - 1}" class="btn--inline pagination__btn--prev">
-          <svg class="search__icon">
-            <use href="${0, _iconsSvgDefault.default}#icon-arrow-left"></use>
-          </svg>
-          <span>Page ${curPage - 1}</span>
-        </button>
-        <button data-goto="${curPage + 1}" class="btn--inline pagination__btn--next">
-          <span>Page ${curPage + 1}</span>
-          <svg class="search__icon">
-            <use href="${0, _iconsSvgDefault.default}#icon-arrow-right"></use>
-          </svg>
-        </button>
-      `;
-        // page 1, and thera are no other pages
-        return ``;
-    }
-}
-exports.default = new PaginationView;
+};
 
-},{"./View":"5cUXS","url:../../img/icons.svg":"loVOp","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"4Lqzq":[function(require,module,exports) {
-var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
-parcelHelpers.defineInteropFlag(exports);
-var _view = require("./View");
-var _viewDefault = parcelHelpers.interopDefault(_view);
-class BookmarksView extends (0, _viewDefault.default) {
-    _parentElement = document.querySelector(".bookmarks__list");
-    _errorMessage = "No bookmarks yet! Find a nice recipe and bookmark it!";
-    _successMessage = "";
-    _generateMarkup() {
-        console.log(this._data);
-        return this._data.map((result)=>this._generateMarkupPreview(result)).join("");
-    }
-    _generateMarkupPreview(result) {
-        const id = window.location.hash.slice(1);
-        return `
-      <li class="preview">
-        <a class="preview__link ${result.id === id ? "preview__link--active" : ""}" href="#${result.id}">
-          <figure class="preview__fig">
-            <img src="${result.image}" alt="${result.title}" />
-          </figure>
-          <div class="preview__data">
-            <h4 class="preview__title">${result.title}</h4>
-            <p class="preview__publisher">${result.publisher}</p>
-          </div>
-        </a>
-      </li>
-    `;
-    }
-}
-exports.default = new BookmarksView();
-
-},{"./View":"5cUXS","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}]},["fA0o9","aenu9"], "aenu9", "parcelRequire3a11")
+},{"regenerator-runtime":"dXNgZ","./config":"k5Hzs","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}]},["fA0o9","aenu9"], "aenu9", "parcelRequire3a11")
 
 //# sourceMappingURL=index.e37f48ea.js.map

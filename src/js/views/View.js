@@ -2,12 +2,16 @@ import icons from 'url:../../img/icons.svg';
 
 export default class View {
   _data;
-  render(data) {
+
+  render(data, render = true) {
     if (!data || (Array.isArray(data) && data.length === 0))
       return this.renderError();
 
     this._data = data;
     const dataMarkup = this._generateMarkup();
+
+    if (!render) return dataMarkup;
+
     this._clear();
     this._parentElement.insertAdjacentHTML('afterbegin', dataMarkup);
   }
@@ -20,11 +24,11 @@ export default class View {
     const newMarkup = this._generateMarkup();
 
     const newDOM = document.createRange().createContextualFragment(newMarkup);
-    const newElement = Array.from(newDOM.querySelectorAll('*'));
-    const curElement = Array.from(this._parentElement.querySelectorAll('*'));
+    const newElements = Array.from(newDOM.querySelectorAll('*'));
+    const curElements = Array.from(this._parentElement.querySelectorAll('*'));
 
-    newElement.forEach((newEl, i) => {
-      const curEl = curElement[i];
+    newElements.forEach((newEl, i) => {
+      const curEl = curElements[i];
       // console.log(curEl, newEl.isEqualNode(curEl));
 
       // Update changed text
