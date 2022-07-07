@@ -2,7 +2,29 @@ import View from './View';
 
 // import icons from '../img/icons.svg'; // Parcel 1
 import icons from 'url:../../img/icons.svg'; // Parcel 2
-// import { Fraction } from 'fractional';
+import { Fraction } from './fractional';
+
+const fraction = function (input) {
+  if (input === 1 || input === null || input === undefined) return;
+
+  const gcd = function (a, b) {
+    if (!b) return a;
+    a = parseInt(a);
+    b = parseInt(b);
+    return gcd(b, a % b);
+  };
+
+  let len = input.toString().length - 2;
+
+  let denominator = Math.pow(10, len);
+  let numerator = input * denominator;
+
+  let divisor = gcd(numerator, denominator); // Should be 8
+
+  numerator /= divisor; // Should be 439
+  denominator /= divisor; // Should be 1250
+  return numerator.toFixed() + '/' + denominator.toFixed();
+};
 
 class RecipeView extends View {
   _parentElement = document.querySelector('.recipe');
@@ -133,7 +155,9 @@ class RecipeView extends View {
         <svg class="recipe__icon">
           <use href="${icons}#icon-check"></use>
         </svg>
-        <div class="recipe__quantity">${ing.quantity ? ing.quantity : ''}</div>
+        <div class="recipe__quantity">${
+          ing.quantity ? new Fraction(ing.quantity).toString() : ''
+        }</div>
         <div class="recipe__description">
           <span class="recipe__unit">${ing.unit}</span>
           ${ing.description}
